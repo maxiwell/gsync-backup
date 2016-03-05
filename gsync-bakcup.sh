@@ -20,7 +20,7 @@ ENABLE_GIT=false
 
 function usage {
     echo -ne "Usage:\n"
-    echo -ne "\t$0 [--enable-git] /path/to/config.bkp\n" 
+    echo -ne "\t$0 [--enable-git] /path/to/config.bkp\n"
 }
 
 function print_header {
@@ -29,6 +29,7 @@ function print_header {
     echo -e "-------------------------------------------------------------------"
     echo -e " - Using $FILTER_FILE as default rsync exclude"
     echo -e " - To details about your backup, see $LOG_FILE"
+    echo -e " - See the config.bkp file to write your configuration" 
     echo -e "-------------------------------------------------------------------"
 }
 
