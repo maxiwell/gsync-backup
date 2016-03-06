@@ -46,14 +46,12 @@ function commit_changes {
     local _FOLDER=`echo $1 | cut -d ":" -f2`
     if [ "$_SERVER" == "$_FOLDER" ]; then
         (cd $_FOLDER &&
-            echo ".git" > .gitignore &&
             $GIT init   &&
             $GIT add .  &&
             $GIT commit -a -m "dummy") &>> $LOG_FILE
     else 
         ssh $_SERVER "
         cd $_FOLDER &&
-            echo \".git\" > .gitignore &&
             $GIT init   &&
             $GIT add .  &&
             $GIT commit -a -m \"dummy\" " &>> $LOG_FILE
