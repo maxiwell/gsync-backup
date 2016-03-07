@@ -2,7 +2,7 @@ GSync Backup
 =============
 
 It's a personal bash project to drive my backups. 
-The configuration file has explications about the field. 
+The configuration file has information about the fields. 
 
 Usage:
 -------
