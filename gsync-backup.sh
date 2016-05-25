@@ -96,7 +96,9 @@ do
                 echo $x >> /tmp/excluded.txt
             done
             if [ -e "$P1" ]; then
-                echo -e "\n[RSYNC] $P1 -> $SERVER $YELLOW [$FILTER_FILE] $NC $RED $RSYNC_FILTER_STRING $NC $YELLOW [$ARG] $NC $RED  $EXCLUDE_LIST $NC"
+                echo -e "\n[RSYNC] $P1 -> $SERVER "
+                echo -e   "   -    ${RED}$FILTER_FILE: $RSYNC_FILTER_STRING $NC"
+                echo -e   "   -    ${RED}exclude: $EXCLUDE_LIST $NC"
                 echo -e "\n[RSYNC] $P1 -> $SERVER [$FILTER_FILE] $RSYNC_FILTER_STRING [$ARG] $EXCLUDE_LIST" &>> $LOG_FILE
                 $RSYNC --exclude-from /tmp/excluded.txt --exclude-from="$FILTER_FILE" -e ssh $P1 $SERVER &>> $LOG_FILE 
                 [[ $? != 0 ]] && echo -e "${YELLOW}[WARN]${NC} Errors was found. See /tmp/backup.log"
@@ -111,7 +113,9 @@ do
         fi
     
     elif [ -e "$line" ]; then
-        echo -e "\n[RSYNC] $line -> $SERVER $YELLOW [$FILTER_FILE] $NC $RED $RSYNC_FILTER_STRING $NC"
+        echo -e "\n[RSYNC] $P1 -> $SERVER "
+        echo -e   "   -    ${RED}$FILTER_FILE: $RSYNC_FILTER_STRING $NC"
+
         echo -e "\n[RSYNC] $line -> $SERVER [$FILTER_FILE] $RSYNC_FILTER_STRING " &>> $LOG_FILE
         $RSYNC --exclude-from="$FILTER_FILE" -e ssh $line $SERVER &>> $LOG_FILE
         [[ $? != 0 ]] && echo -e "Errors was found. See /tmp/backup.log"
