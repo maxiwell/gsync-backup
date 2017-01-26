@@ -1,7 +1,7 @@
 GSync Backup
 =============
 
-It's a personal bash project to drive my backups. 
+It's a personal bash project to drive my backups using 'rsync' and 'rclone' as backend.
 The configuration file has information about the fields. 
 
 Usage:
