@@ -9,12 +9,14 @@ LOG_FILE="/tmp/backup.log"
 
 # programs
 RSYNC="rsync -Rrazpt -v  --delete"
+RCLONE="rclone"
 GIT="git"
 
 # environment
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 PURPLE='\e[0;35m' 
+GREEN='\e[32m'
 NC='\033[0m' # No Color
 ENABLE_GIT=false
 
@@ -27,9 +29,9 @@ function print_header {
     echo -e "-------------------------------------------------------------------"
     echo -e " GSync Backup v0.1"
     echo -e "-------------------------------------------------------------------"
-    echo -e " - Using $FILTER_FILE as default rsync exclude"
-    echo -e " - To details about your backup, see $LOG_FILE"
-    echo -e " - See the config.bkp file to write your configuration" 
+    echo -e "$GREEN[INFO]$NC Using $FILTER_FILE as default rsync exclude"
+    echo -e "$GREEN[INFO]$NC To details about your backup, see $LOG_FILE"
+    echo -e "$GREEN[INFO]$NC See the config.bkp file to write your configuration" 
     echo -e "-------------------------------------------------------------------"
 }
 
@@ -58,6 +60,15 @@ function commit_changes {
     fi
 }
 
+function exclude_file {
+    EXCLUDE_LIST=$1
+    FILE=$2
+    for x in $EXCLUDE_LIST
+    do
+        echo $x >> $FILE
+    done
+}
+
 # ----------
 # main
 #-----------
@@ -76,53 +87,56 @@ fi
 [[ $ENABLE_GIT = true ]] && echo -e "$YELLOW[WARN]$NC Experimental git versioning enabled"
 
 rm -f $LOG_FILE
-RSYNC_FILTER_STRING=$(cat $FILTER_FILE | sed 's/#.*$//g' | sed '/^$/d' | tr '\n' ' ')
 
 while read line
 do
     [[ $line == \#* ]] && continue
-    [[  -z $line   ]] && continue
-    [[ $line == \[* ]] && SERVER=`echo $line | cut -d "[" -f2 | cut -d "]" -f1` && continue
-
-    if [ `echo $line | wc -w` -gt 1 ]; then
-       P1=`echo $line | cut -d\  -f1`
-       ARG=`echo $line | cut -d\  -f2`
-       EXCLUDE_LIST=`echo $line | cut -d\  -f3-`
-
-       if [ "$ARG" == "-exclude" ]; then 
-            rm -f /tmp/excluded.txt  # just in case
-            for x in $EXCLUDE_LIST
-            do
-                echo $x >> /tmp/excluded.txt
-            done
-            if [ -e "$P1" ]; then
-                echo -e "\n[RSYNC] $P1 -> $SERVER "
-                echo -e   "   -    ${RED}$FILTER_FILE: $RSYNC_FILTER_STRING $NC"
-                echo -e   "   -    ${RED}exclude: $EXCLUDE_LIST $NC"
-                echo -e "\n[RSYNC] $P1 -> $SERVER [$FILTER_FILE] $RSYNC_FILTER_STRING [$ARG] $EXCLUDE_LIST" &>> $LOG_FILE
-                $RSYNC --exclude-from /tmp/excluded.txt --exclude-from="$FILTER_FILE" -e ssh $P1 $SERVER &>> $LOG_FILE 
-                [[ $? != 0 ]] && echo -e "${YELLOW}[WARN]${NC} Errors was found. See /tmp/backup.log"
-                [[ $ENABLE_GIT = true ]] && commit_changes ${SERVER}
-            else
-                echo -e "$YELLOW[WARN]$NC The path '$line' don't exists\n"
-            fi
-            rm -f /tmp/excluded.txt
-       else 
-            echo "Argument $ARG dont implemented in $line"
-            continue
-        fi
-    
-    elif [ -e "$line" ]; then
-        echo -e "\n[RSYNC] $P1 -> $SERVER "
-        echo -e   "   -    ${RED}$FILTER_FILE: $RSYNC_FILTER_STRING $NC"
-
-        echo -e "\n[RSYNC] $line -> $SERVER [$FILTER_FILE] $RSYNC_FILTER_STRING " &>> $LOG_FILE
-        $RSYNC --exclude-from="$FILTER_FILE" -e ssh $line $SERVER &>> $LOG_FILE
-        [[ $? != 0 ]] && echo -e "Errors was found. See /tmp/backup.log"
-        [[ $ENABLE_GIT = true ]] && commit_changes ${SERVER}
-    else
-        echo -e "$YELLOW[WARN]$NC The path '$line' don't exists\n"
+    [[  -z $line    ]] && continue
+    if [[ $line == \[* ]]; then 
+        SERVER=`echo $line | cut -d "[" -f2 | cut -d "]" -f1`
+        CLOUD=""
+        continue
+    elif [[ $line == \{* ]]; then
+        CLOUD=`echo $line | cut -d "{" -f2 | cut -d "}" -f1`
+        SERVER=""
+        continue
     fi
+
+    DIR=`echo $line | cut -d\  -f1`
+    if [ ! -e $DIR ]; then
+        echo -e "$YELLOW[WARN]$NC The path '$line' don't exists\n"
+        continue
+    fi
+
+    EXCLUDE_FILE=/tmp/excluded.txt && touch $EXCLUDE_FILE
+    if [ `echo $line | wc -w` -gt 1 ]; then
+        ARG=`echo $line | cut -d\  -f2`
+        EXCLUDE_LIST=`echo $line | cut -d\  -f3-`
+
+        case "$ARG" in 
+            "-exclude")  
+                exclude_file "${EXCLUDE_LIST}" $EXCLUDE_FILE
+                ;;
+            *)
+                echo "Argument $ARG dont implemented in $line"
+                continue
+                ;;
+        esac;
+    fi
+    if [ -e $SERVER ]; then
+        echo -e "$YELLOW[RCLONE]$NC $DIR -> $CLOUD"
+        echo -e "[RCLONE] $line -> $CLOUD" &>> $LOG_FILE
+        echo -e "Excluding:\n`cat $EXCLUDE_FILE`" &>> $LOG_FILE
+        $RCLONE sync --exclude-from $EXCLUDE_FILE $DIR $CLOUD &>> $LOG_FILE
+    else
+        echo -e "$YELLOW[RSYNC]$NC $DIR -> $SERVER "
+        echo -e "[RSYNC] $line -> $SERVER " &>> $LOG_FILE
+        echo -e "Excluding:\n`cat $EXCLUDE_FILE`" &>> $LOG_FILE
+        $RSYNC --exclude-from $EXCLUDE_FILE --exclude-from="$FILTER_FILE" -e ssh $DIR $SERVER &>> $LOG_FILE 
+    fi
+    [[ $? != 0 ]] && echo -e "Errors was found. See /tmp/backup.log"
+    [[ $ENABLE_GIT = true ]] && commit_changes ${SERVER}
+    rm $EXCLUDE_FILE
 
 done < "$INPUT_FILE"
 

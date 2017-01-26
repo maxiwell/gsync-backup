@@ -1,7 +1,13 @@
-# The destination server is between [...] 
-# The lines below are the paths to backup
+# The destination server between [...] uses 'rsync'
+# The destination server between {...} uses 'rclone'
+# See the examples below:
 
-# /media/backup: external hard drive for backup purpose
+# -----------------------------------------------------------------------
+# LOCAL EXAMPLES
+# Backend: 'rsync'
+# -----------------------------------------------------------------------
+
+# /media/backup: mount point of external hard drive for backup purpose
 
 # /media/backup/laptop1: folder that will store the laptop1 backup
 [/media/backup/laptop1]
@@ -13,15 +19,31 @@
 # /media/backup/windows: folder that will store the windows backup
 [/media/backup/windows]
 
-# /media/win folder will be backed up, excluding the 'Windows' 
-# and 'Recovery' folders inside /media/win
+# rsync will avoid the 'Windows' and 'Recovery' folder
 /media/win -exclude Windows Recovery 
 
-# Example of the backup with a ssh server. 
+# -----------------------------------------------------------------------
+# SSH EXAMPLE
+# Backend: 'rsync'
+# -----------------------------------------------------------------------
+
 # 'ayarrr' is a machine configured in ~/.ssh/config
 [ayarrr:/files/backup/academic]
 
 /media/files/academic
 /media/files/books
 /media/files/personal -exclude .crypto
+
+# -----------------------------------------------------------------------
+# CLOUD EXAMPLE
+# Backend: 'rclone'
+# -----------------------------------------------------------------------
+
+# You must install 'rclone' and configure a remote to use this approach
+# http://rclone.org/
+
+# 'onedrive' is a remote configured in the 'rclone'
+{onedrive:backup}
+
+/media/files/
 
