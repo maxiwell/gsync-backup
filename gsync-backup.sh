@@ -71,6 +71,23 @@ exclude_file () {
     done
 }
 
+# $1: string with args
+build_args () {
+    args=$1
+
+    for i in $args; do
+        case $i in
+            --exclude)
+                EXCLIST=`echo "$args" | awk -F '--exclude' '{print $2}' | awk -F '--' '{print $1}'`
+                echo $EXCLIST | tr ' ' '\n' &>> $EXCLUDE_FILE
+                ;;
+            --*)
+                echo -e "Invalid argument $i" &>> $LOG_FILE
+                ;;
+        esac
+    done
+}
+
 # ----------
 # main
 #-----------
@@ -110,21 +127,10 @@ do
         continue
     fi
 
-    EXCLUDE_FILE=/tmp/excluded.txt && touch $EXCLUDE_FILE
-    if [ `echo $line | wc -w` -gt 1 ]; then
-        ARG=`echo $line | cut -d\  -f2`
-        EXCLUDE_LIST=`echo $line | cut -d\  -f3-`
+    EXCLUDE_FILE=/tmp/excluded.txt && rm -f $EXCLUDE_FILE && touch $EXCLUDE_FILE
+    ARGS_LINE=`echo $line | cut -d\  -f2-`
+    build_args "${ARGS_LINE}"
 
-        case "$ARG" in 
-            "-exclude")  
-                exclude_file "${EXCLUDE_LIST}" $EXCLUDE_FILE
-                ;;
-            *)
-                echo "Argument $ARG dont implemented in $line"
-                continue
-                ;;
-        esac;
-    fi
     if [ $CLOUD ]; then
         echo -e "$YELLOW[RCLONE]$NC $DIR -> $CLOUD"
         echo -e "[RCLONE] $line -> $CLOUD" &>> $LOG_FILE
