@@ -20,7 +20,7 @@
 [/media/backup/windows]
 
 # rsync will avoid the 'Windows' and 'Recovery' folder
-/media/win -exclude Windows Recovery 
+/media/win --exclude Windows Recovery 
 
 # -----------------------------------------------------------------------
 # SSH EXAMPLE
@@ -32,7 +32,7 @@
 
 /media/files/academic
 /media/files/books
-/media/files/personal -exclude .crypto
+/media/files/personal --exclude .crypto
 
 # -----------------------------------------------------------------------
 # CLOUD EXAMPLE
