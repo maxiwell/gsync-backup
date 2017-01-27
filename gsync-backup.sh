@@ -74,6 +74,7 @@ exclude_file () {
 # $1: string with args
 build_args () {
     args=$1
+    FAIL=false
 
     for i in $args; do
         case $i in
@@ -81,11 +82,22 @@ build_args () {
                 EXCLIST=`echo "$args" | awk -F '--exclude' '{print $2}' | awk -F '--' '{print $1}'`
                 echo $EXCLIST | tr ' ' '\n' &>> $EXCLUDE_FILE
                 ;;
+            -exclude)
+                echo -e "$RED[ERROR]$NC Invalid argument $i, try --exclude"
+                echo -e "[ERROR] Use --exclude" &>> $LOG_FILE
+                FAIL=true
+                ;;
             --*)
+                echo -e "$RED[ERROR]$NC Invalid argument $i"
                 echo -e "Invalid argument $i" &>> $LOG_FILE
+                FAIL=true
                 ;;
         esac
     done
+
+    if [ $FAIL == true ]; then
+        exit 2;
+    fi
 }
 
 # ----------
