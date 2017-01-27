@@ -20,12 +20,12 @@ GREEN='\e[32m'
 NC='\033[0m' # No Color
 ENABLE_GIT=false
 
-function usage {
+usage () {
     echo -ne "Usage:\n"
     echo -ne "\t$0 [--enable-git] /path/to/config.bkp\n"
 }
 
-function print_header {
+print_header () {
     echo -e "-------------------------------------------------------------------"
     echo -e " GSync Backup v0.1"
     echo -e "-------------------------------------------------------------------"
@@ -36,14 +36,14 @@ function print_header {
 }
 
 # $1: error message
-function error_and_die {
+error_and_die () {
     usage
     echo -ne "\n${RED}[ERROR]${NC} $1\n\n"
     exit 1;
 }
 
 # $1: Server:folder to commit
-function commit_changes {
+commit_changes () {
     local _SERVER=`echo $1 | cut -d ":" -f1`
     local _FOLDER=`echo $1 | cut -d ":" -f2`
     if [ "$_SERVER" == "$_FOLDER" ]; then
@@ -60,7 +60,9 @@ function commit_changes {
     fi
 }
 
-function exclude_file {
+# $1: exclude list
+# $2: exclude file
+exclude_file () {
     EXCLUDE_LIST=$1
     FILE=$2
     for x in $EXCLUDE_LIST
