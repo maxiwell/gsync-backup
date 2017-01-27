@@ -123,7 +123,7 @@ do
                 ;;
         esac;
     fi
-    if [ -e $SERVER ]; then
+    if [ $CLOUD ]; then
         echo -e "$YELLOW[RCLONE]$NC $DIR -> $CLOUD"
         echo -e "[RCLONE] $line -> $CLOUD" &>> $LOG_FILE
         echo -e "Excluding:\n`cat $EXCLUDE_FILE`" &>> $LOG_FILE
