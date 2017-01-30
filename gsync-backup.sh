@@ -152,13 +152,23 @@ do
         CLOUD_DIR=$(readlink -m "`echo $CLOUD | cut -d: -f2-`/$DIR")
 
         $RCLONE sync --exclude-from $EXCLUDE_FILE $DIR "$CLOUD_SERVER:$CLOUD_DIR" &>> $LOG_FILE
+        RET=`echo $?`
+
+        # Fix the problem with Cloud Server that not support symlinks, like OneDrive:
+        # A __symlinks__ file is generated with the symlink annotations
+        # It must be after the sync instead of it will erase the file
+        ls -l `find $DIR -type l` > /tmp/__symlinks__
+        $RCLONE copy /tmp/__symlinks__ "$CLOUD_SERVER:$CLOUD_DIR"
+        rm /tmp/__symlinks__
+
     else
         echo -e "$YELLOW[RSYNC]$NC $DIR -> $SERVER "
         echo -e "[RSYNC] $line -> $SERVER " &>> $LOG_FILE
         echo -e "Excluding:\n`cat $EXCLUDE_FILE`" &>> $LOG_FILE
         $RSYNC --exclude-from $EXCLUDE_FILE --exclude-from="$FILTER_FILE" -e ssh $DIR $SERVER &>> $LOG_FILE 
+        RET=`echo $?`
     fi
-    [[ $? != 0 ]] && echo -e "Errors was found. See /tmp/backup.log"
+    [[ $RET != 0 ]] && echo -e "Errors was found. See /tmp/backup.log"
     [[ $ENABLE_GIT = true ]] && commit_changes ${SERVER}
     rm $EXCLUDE_FILE
 
