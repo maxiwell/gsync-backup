@@ -147,7 +147,11 @@ do
         echo -e "$YELLOW[RCLONE]$NC $DIR -> $CLOUD"
         echo -e "[RCLONE] $line -> $CLOUD" &>> $LOG_FILE
         echo -e "Excluding:\n`cat $EXCLUDE_FILE`" &>> $LOG_FILE
-        $RCLONE sync --exclude-from $EXCLUDE_FILE $DIR $CLOUD &>> $LOG_FILE
+
+        CLOUD_SERVER=`echo $CLOUD | cut -d: -f1`
+        CLOUD_DIR=$(readlink -m "`echo $CLOUD | cut -d: -f2-`/$DIR")
+
+        $RCLONE sync --exclude-from $EXCLUDE_FILE $DIR "$CLOUD_SERVER:$CLOUD_DIR" &>> $LOG_FILE
     else
         echo -e "$YELLOW[RSYNC]$NC $DIR -> $SERVER "
         echo -e "[RSYNC] $line -> $SERVER " &>> $LOG_FILE
