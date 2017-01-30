@@ -157,9 +157,14 @@ do
         # Fix the problem with Cloud Server that not support symlinks, like OneDrive:
         # A __symlinks__ file is generated with the symlink annotations
         # It must be after the sync instead of it will erase the file
-        ls -l `find $DIR -type l` > /tmp/__symlinks__
-        $RCLONE copy /tmp/__symlinks__ "$CLOUD_SERVER:$CLOUD_DIR"
+        cd $DIR
+        ls -l `find . -type l` | grep '\->' > /tmp/__symlinks__
+        if [ -s /tmp/__symlinks__ ]; then
+            $RCLONE copy /tmp/__symlinks__ "$CLOUD_SERVER:$CLOUD_DIR" &>> $LOG_FILE
+            echo "[ INFO ] Symlink was found"
+        fi
         rm /tmp/__symlinks__
+        cd - &> /dev/null 
 
     else
         echo -e "$YELLOW[RSYNC]$NC $DIR -> $SERVER "
