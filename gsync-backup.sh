@@ -9,7 +9,7 @@ LOG_FILE="/tmp/backup.log"
 
 # programs
 RSYNC="rsync -Rrazpt -v  --delete"
-RCLONE="rclone"
+RCLONE="rclone --delete-excluded"
 GIT="git"
 
 # environment
