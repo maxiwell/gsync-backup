@@ -158,12 +158,12 @@ do
         # A __symlinks__ file is generated with the symlink annotations
         # It must be after the sync instead of it will erase the file
         cd $DIR
-        ls -l `find . -type l` | grep '\->' > /tmp/__symlinks__
-        if [ -s /tmp/__symlinks__ ]; then
-            $RCLONE copy /tmp/__symlinks__ "$CLOUD_SERVER:$CLOUD_DIR" &>> $LOG_FILE
+        find . -type l -exec tar -rvf /tmp/__symlinks__.tar {} \; &>> $LOG_FILE
+        if [ -s /tmp/__symlinks__.tar ]; then
+            $RCLONE copy /tmp/__symlinks__.tar "$CLOUD_SERVER:$CLOUD_DIR" &>> $LOG_FILE
             echo "[ INFO ] Symlink was found"
         fi
-        rm /tmp/__symlinks__
+        rm -f /tmp/__symlinks__.tar
         cd - &> /dev/null 
 
     else
