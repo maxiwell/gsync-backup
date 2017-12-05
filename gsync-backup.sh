@@ -133,11 +133,13 @@ do
         continue
     fi
 
-    DIR=`echo $line | cut -d\  -f1`
+    DIR=`echo $line | cut -d\  -f1 | sed 's@(\(.*\))@\1@g'`
     if [ ! -e $DIR ]; then
         echo -e "$YELLOW[WARN]$NC The path '$line' don't exists\n"
         continue
     fi
+
+    DIR_ON_SERVER=`echo $line | cut -d\  -f1 | sed 's@(\(.*\))@@g'`
 
     EXCLUDE_FILE=/tmp/excluded.txt && rm -f $EXCLUDE_FILE && touch $EXCLUDE_FILE
     ARGS_LINE=`echo $line | cut -d\  -f2-`
@@ -149,7 +151,7 @@ do
         echo -e "Excluding:\n`cat $EXCLUDE_FILE`" &>> $LOG_FILE
 
         CLOUD_SERVER=`echo $CLOUD | cut -d: -f1`
-        CLOUD_DIR=$(readlink -m "`echo $CLOUD | cut -d: -f2-`/$DIR")
+        CLOUD_DIR=$(readlink -m "`echo $CLOUD | cut -d: -f2-`/$DIR_ON_SERVER")
 
         $RCLONE sync --exclude-from $EXCLUDE_FILE $DIR "$CLOUD_SERVER:$CLOUD_DIR" &>> $LOG_FILE
         RET=`echo $?`

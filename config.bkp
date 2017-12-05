@@ -43,7 +43,23 @@
 # http://rclone.org/
 
 # 'onedrive' is a remote configured in the 'rclone'
-{onedrive:backup}
+{onedrive:/backup}
 
 /media/files/
+
+# The files will appears in /backup/media/files/ on OneDrive
+
+# -----------------------------------------------------------------------
+# CLOUD EXAMPLE ESCAPE HALF OF PATH
+# Backend: 'rclone'
+# -----------------------------------------------------------------------
+
+# The path between ( ) will be ignored on the CLOUD side
+
+# 'onedrive' is a remote configured in the 'rclone'
+{onedrive:/backup}
+
+(/media)/files/
+
+# The files will appears in /backup/files/ on OneDrive
 
